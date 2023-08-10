@@ -33,8 +33,8 @@ const getUserWithEmail = function(email) { // refactored function. Accepts an em
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithId = function(id) { //refactored function. Accepts an id address and will return a promise
-  return pool.query(`SELECT * FROM users WHERE id = $1`, [id]) // To limit for 1 user I used WHERE. The query get the user's id from $1 and it replaces the email with the 2nd argument of the pool.query function. 
+const getUserWithId = function(id) { //refactored function. Accepts an id and will return a promise
+  return pool.query(`SELECT * FROM users WHERE id = $1`, [id]) // To limit for 1 user I used WHERE. The query get the user's id from $1 and it replaces the id with the 2nd argument of the pool.query function. 
   .then(res => {
     const user = res.rows[0] ? res.rows[0] : null; //the promise resolve with a user object(the line below) with the given id(res.row[0]), or null if that user does not exist.
     return Promise.resolve(user);
