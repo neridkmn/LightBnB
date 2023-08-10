@@ -18,7 +18,7 @@ const pool = new Pool({
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) { // refactored function. Accepts an email address and will return a promise
-  return pool.query(`SELECT * FROM users WHERE email = $1`, [email]) // To limit for 1 user I used WHERE. The query get the user's email from $1 and it replaces the email with the 2nd argument of the pool.query function. 
+  return pool.query(`SELECT * FROM users WHERE email = $1`, [email.toLowerCase()]) // To limit for 1 user I used WHERE. The query get the user's email from $1 and it replaces the email with the 2nd argument of the pool.query function. 
   .then(res => {
     const user = res.rows[0] ? res.rows[0] : null; //the promise resolve with a user object(the line below) with the given email address(res.row[0]), or null if that user does not exist.
     return Promise.resolve(user);
@@ -50,7 +50,7 @@ const getUserWithId = function(id) { //refactored function. Accepts an id and wi
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function(user) { //refactored function. Accepts a user object that will have a name, email, and password property.
-  return pool.query(`INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`, [user.name, user.email, user.password])
+  return pool.query(`INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`, [user.name, user.email.toLowerCase(), user.password])
   .then(res => {
     const user = res.rows[0] ? res.rows[0] : null;
     return Promise.resolve(user);
