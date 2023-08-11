@@ -81,7 +81,6 @@ const getAllReservations = function(guest_id, limit = 10) { //refactored functio
   return pool
   .query(queryString, [guest_id, limit])
   .then(res => {
-    console.log(res.rows);
     return Promise.resolve(res.rows);
   })
   .catch((err) => {
@@ -100,15 +99,30 @@ const getAllReservations = function(guest_id, limit = 10) { //refactored functio
 
 const getAllProperties = (options, limit = 10) => { //Refactored function
 
-  return pool
-    .query(`SELECT * FROM properties LIMIT $1`, [limit])
-    .then((result) => {
-      console.log(result.rows);
-      return result.rows;
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });
+  const queryParams = [];
+  
+  let queryString = `
+  SELECT properties.*, avg(property_reviews.rating) as average_rating
+  FROM properties
+  JOIN property_reviews ON properties.id = property_id
+  `;
+
+  if (options.city) {
+    queryParams.push(`%${options.city}%`);
+    queryString += `WHERE city LIKE $${queryParams.length} `;
+  }
+
+  queryParams.push(limit);
+  queryString += `
+  GROUP BY properties.id
+  ORDER BY cost_per_night
+  LIMIT $${queryParams.length};
+  `;
+
+  console.log(queryString, queryParams);
+
+
+  return pool.query(queryString, queryParams).then((res) => res.rows);
 };
 
 /**
