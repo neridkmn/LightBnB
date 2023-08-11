@@ -100,7 +100,7 @@ const getAllReservations = function(guest_id, limit = 10) { //refactored functio
 const getAllProperties = (options, limit = 10) => { //Refactored function
 
   const queryParams = [];
-  let hasMinimumRating = false; // Declare a Boolean to check if a rating typed in or not 
+  let hasMinimumRating = false; // Declare a Boolean to false to keep track of whether minimum rating has been provided
 
   let queryString = `
   SELECT properties.*, avg(property_reviews.rating) as average_rating
