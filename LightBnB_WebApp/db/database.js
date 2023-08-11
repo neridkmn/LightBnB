@@ -113,8 +113,13 @@ const getAllProperties = (options, limit = 10) => { //Refactored function
   }
 
   if (options.owner_id) { //if an owner_id is passed in, only return properties belonging to that owner.
-    queryParams.push(`%${options.owner_id}%`); //Add owner_id to queryParams array.
-    queryString += `${queryParams.length > 1 ? "AND" : ""} WHERE owner_id LIKE $${queryParams.length} `; //If the queryParams has more than 1 elements, add 'AND'before the next query.  
+    queryParams.push(`${options.owner_id}`); //Add owner_id to queryParams array.
+    queryString += `${queryParams.length > 1 ? "AND" : "WHERE"} owner_id LIKE $${queryParams.length} `; //If the queryParams has more than 1 element, add 'AND'before the next query if not add WHERE.  
+  }
+
+  if (options.minimum_price_per_night && options.maximum_price_per_night) { //if a minimum_price_per_night and a maximum_price_per_night, only return properties within that price range.
+    queryParams.push(`${options.minimum_price_per_night * 100 }`, `${options.maximum_price_per_night * 100 }`); //Add min & max price to the queryParams array.
+    queryString += `${queryParams.length > 2 ? "AND" : "WHERE"} cost_per_night BETWEEN $${queryParams.length-1} AND $${queryParams.length} `; //If the queryParams has more than 2 elements, add 'AND'before the next query if not add WHERE.
   }
 
   queryParams.push(limit);
