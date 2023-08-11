@@ -19,13 +19,13 @@ const pool = new Pool({
  */
 const getUserWithEmail = function(email) { // refactored function. Accepts an email address and will return a promise
   return pool.query(`SELECT * FROM users WHERE email = $1`, [email.toLowerCase()]) // To limit for 1 user I used WHERE. The query get the user's email from $1 and it replaces the email with the 2nd argument of the pool.query function. 
-  .then(res => {
-    const user = res.rows[0] ? res.rows[0] : null; //the promise resolve with a user object(the line below) with the given email address(res.row[0]), or null if that user does not exist.
-    return Promise.resolve(user);
-  })
-  .catch((err) => {
-    console.log(err.message);
-  })
+    .then(res => {
+      const user = res.rows[0] ? res.rows[0] : null; //the promise resolve with a user object(the line below) with the given email address(res.row[0]), or null if that user does not exist.
+      return Promise.resolve(user);
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 /**
@@ -35,13 +35,13 @@ const getUserWithEmail = function(email) { // refactored function. Accepts an em
  */
 const getUserWithId = function(id) { //refactored function. Accepts an id and will return a promise
   return pool.query(`SELECT * FROM users WHERE id = $1`, [id]) // To limit for 1 user I used WHERE. The query get the user's id from $1 and it replaces the id with the 2nd argument of the pool.query function. 
-  .then(res => {
-    const user = res.rows[0] ? res.rows[0] : null; //the promise resolve with a user object(the line below) with the given id(res.row[0]), or null if that user does not exist.
-    return Promise.resolve(user);
-  })
-  .catch((err) => {
-    console.log(err.message);
-  })
+    .then(res => {
+      const user = res.rows[0] ? res.rows[0] : null; //the promise resolve with a user object(the line below) with the given id(res.row[0]), or null if that user does not exist.
+      return Promise.resolve(user);
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 /**
@@ -51,13 +51,13 @@ const getUserWithId = function(id) { //refactored function. Accepts an id and wi
  */
 const addUser = function(user) { //refactored function. Accepts a user object that will have a name, email, and password property.
   return pool.query(`INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`, [user.name, user.email.toLowerCase(), user.password])
-  .then(res => {
-    const user = res.rows[0] ? res.rows[0] : null;
-    return Promise.resolve(user);
-  })
-  .catch((err) => {
-    console.log(err.message);
-  })
+    .then(res => {
+      const user = res.rows[0] ? res.rows[0] : null;
+      return Promise.resolve(user);
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 /// Reservations
@@ -79,13 +79,13 @@ const getAllReservations = function(guest_id, limit = 10) { //refactored functio
   LIMIT $2;`;
 
   return pool
-  .query(queryString, [guest_id, limit])
-  .then(res => {
-    return Promise.resolve(res.rows);
-  })
-  .catch((err) => {
-    console.log(err.message);
-  })
+    .query(queryString, [guest_id, limit])
+    .then(res => {
+      return Promise.resolve(res.rows);
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 /// Properties
@@ -100,7 +100,8 @@ const getAllReservations = function(guest_id, limit = 10) { //refactored functio
 const getAllProperties = (options, limit = 10) => { //Refactored function
 
   const queryParams = [];
-  
+  let hasMinimumRating = false; // Declare a Boolean to check if a rating typed in or not 
+
   let queryString = `
   SELECT properties.*, avg(property_reviews.rating) as average_rating
   FROM properties
@@ -118,13 +119,20 @@ const getAllProperties = (options, limit = 10) => { //Refactored function
   }
 
   if (options.minimum_price_per_night && options.maximum_price_per_night) { //if a minimum_price_per_night and a maximum_price_per_night, only return properties within that price range.
-    queryParams.push(`${options.minimum_price_per_night * 100 }`, `${options.maximum_price_per_night * 100 }`); //Add min & max price to the queryParams array.
-    queryString += `${queryParams.length > 2 ? "AND" : "WHERE"} cost_per_night BETWEEN $${queryParams.length-1} AND $${queryParams.length} `; //If the queryParams has more than 2 elements, add 'AND'before the next query if not add WHERE.
+    queryParams.push(`${options.minimum_price_per_night * 100}`, `${options.maximum_price_per_night * 100}`); //Add min & max price to the queryParams array.
+    queryString += `${queryParams.length > 2 ? "AND" : "WHERE"} cost_per_night BETWEEN $${queryParams.length - 1} AND $${queryParams.length} `; //If the queryParams has more than 2 elements, add 'AND'before the next query if not add WHERE.
+  }
+
+  if (options.minimum_rating) { //if a minimum_rating is passed in, only return properties with an average rating equal to or higher than that.
+    queryParams.push(`${options.minimum_rating}`); //add rating to the quaryParams array
+    hasMinimumRating = true; // Return Boolean as true
   }
 
   queryParams.push(limit);
+  // Line 135 - add Having query for the rating
   queryString += `
   GROUP BY properties.id
+  ${hasMinimumRating ? `HAVING avg(property_reviews.rating) >= $${queryParams.length - 1}` : ""} 
   ORDER BY cost_per_night
   LIMIT $${queryParams.length};
   `;
