@@ -112,6 +112,11 @@ const getAllProperties = (options, limit = 10) => { //Refactored function
     queryString += `WHERE city LIKE $${queryParams.length} `;
   }
 
+  if (options.owner_id) { //if an owner_id is passed in, only return properties belonging to that owner.
+    queryParams.push(`%${options.owner_id}%`); //Add owner_id to queryParams array.
+    queryString += `${queryParams.length > 1 ? "AND" : ""} WHERE owner_id LIKE $${queryParams.length} `; //If the queryParams has more than 1 elements, add 'AND'before the next query.  
+  }
+
   queryParams.push(limit);
   queryString += `
   GROUP BY properties.id
