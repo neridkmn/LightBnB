@@ -1,6 +1,3 @@
-const properties = require("./json/properties.json");
-const users = require("./json/users.json");
-
 const { Pool } = require('pg'); //Database connection
 
 const pool = new Pool({
@@ -129,7 +126,7 @@ const getAllProperties = (options, limit = 10) => { //Refactored function
   }
 
   queryParams.push(limit);
-  // Line 135 - add Having query for the rating
+  // Line 132 - add Having query for the rating
   queryString += `
   GROUP BY properties.id
   ${hasMinimumRating ? `HAVING avg(property_reviews.rating) >= $${queryParams.length - 1}` : ""} 
@@ -150,22 +147,23 @@ const addProperty = function(property) { // Refactored function
 
   const keys = [...Object.keys(property)]; //Variable to store keys for easy access.
   const queryParams = []; // Array to use parameterized query.
-  let fieldNames = []; // Array to store field names as part of the query string.
-  let paramNumbers = []; // To store $1, $2... for the query string.
+  const fieldNames = []; // Array to store field names as part of the query string.
+  const paramNumbers = []; // To store $1, $2... for the query string.
 
-   for (let i = 0; i < keys.length; i++) { // Loop over the property object and extract queryParams, fieldNames & populate paramNumbers. 
-    const key = keys[i]
+  for (let i = 0; i < keys.length; i++) { // Loop over the property object and extract queryParams, fieldNames & populate paramNumbers. 
+    const key = keys[i];
     queryParams.push(property[key]);
     fieldNames.push(key);
     paramNumbers.push(`$${i + 1}`);
   }
 
   const queryString = `INSERT INTO properties (${fieldNames}) VALUES (${paramNumbers}) RETURNING *;`;
- 
-  return pool.query(queryString, queryParams).then((res) => res.rows)
-  .catch((err) => {
-    console.log(err.message);
-  });
+
+  return pool.query(queryString, queryParams)
+    .then((res) => res.rows)
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 module.exports = {
