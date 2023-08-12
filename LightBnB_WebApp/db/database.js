@@ -136,10 +136,6 @@ const getAllProperties = (options, limit = 10) => { //Refactored function
   ORDER BY cost_per_night
   LIMIT $${queryParams.length};
   `;
-
-  console.log(queryString, queryParams);
-
-
   return pool.query(queryString, queryParams).then((res) => res.rows);
 };
 
@@ -148,11 +144,28 @@ const getAllProperties = (options, limit = 10) => { //Refactored function
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
  */
-const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+
+
+const addProperty = function(property) { // Refactored function
+
+  const keys = [...Object.keys(property)]; //Variable to store keys for easy access.
+  const queryParams = []; // Array to use parameterized query.
+  let fieldNames = []; // Array to store field names as part of the query string.
+  let paramNumbers = []; // To store $1, $2... for the query string.
+
+   for (let i = 0; i < keys.length; i++) { // Loop over the property object and extract queryParams, fieldNames & populate paramNumbers. 
+    const key = keys[i]
+    queryParams.push(property[key]);
+    fieldNames.push(key);
+    paramNumbers.push(`$${i + 1}`);
+  }
+
+  const queryString = `INSERT INTO properties (${fieldNames}) VALUES (${paramNumbers}) RETURNING *;`;
+ 
+  return pool.query(queryString, queryParams).then((res) => res.rows)
+  .catch((err) => {
+    console.log(err.message);
+  });
 };
 
 module.exports = {
