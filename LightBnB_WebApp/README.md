@@ -8,6 +8,13 @@
 * Start the web server using the `npm run local` command. The app will be served at http://localhost:3000/.
 * Go to http://localhost:3000/ in your browser.
 
+* # Create Database Locally
+* Using `psql` command in terminal (in the project folder), enter the psql command line.
+* Run `CREATE DATABASE lightbnb`
+* Run `\c lightbnb`
+* Run `\i migrations/01_schema.sql`
+* Run `\i seeds/02_seeds.sql`
+
 ## Final Product 
 App walkthrough
 * Login as existing user
